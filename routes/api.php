@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\EmpresaContoller;
+use App\Http\Controllers\ProductosController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -22,3 +23,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::apiResource('empresas',EmpresaContoller::class)->middleware('auth.routes');
 Route::apiResource('clientes',ClienteController::class)->middleware('auth.routes');
+Route::apiResource('productos',ProductosController::class)->middleware('auth.routes');

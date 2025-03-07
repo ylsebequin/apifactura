@@ -81,6 +81,7 @@ class ClienteController extends Controller
     public function update(Request $request, string $id)
     {
         try {
+            //Resquest se envia los datos del cliente
             $data = $request->validate([
                 'nombre' => 'required|string|max:50',
                 'apellido' => 'required|string|max:50',
