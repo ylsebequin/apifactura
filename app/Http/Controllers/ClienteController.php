@@ -48,11 +48,10 @@ class ClienteController extends Controller
 
             ]);
             $response = Cliente::create($data);
-            $respuesta = $this->get_response($this->respuesta_exitosa,200,$response);
-            return response()->json($respuesta,200);
-
+            $respuesta = $this->get_response($this->respuesta_exitosa, 200, $response);
+            return response()->json($respuesta, 200);
         } catch (Exception $e) {
-            return response()->json($this->get_response($e->getMessage(),500,[]),503);
+            return response()->json($this->get_response($e->getMessage(), 500, []), 503);
         }
     }
 
@@ -81,7 +80,34 @@ class ClienteController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        try {
+            $data = $request->validate([
+                'nombre' => 'required|string|max:50',
+                'apellido' => 'required|string|max:50',
+                'ruc' => 'required|string|max:50',
+                'razon_social' => 'nullable|string|max:100',
+                'email' => 'nullable|string|email|max:500',
+                'fecha_nacimiento' => 'nullable|string|max:100',
+                'direccion' => 'nullable|string|max:255',
+                'telefono' => 'nullable|string|max:255',
+
+            ]);
+            $cliente = Cliente::findOrFail($id);
+            $cliente->update($data);
+            return response()->json(
+                $this->get_response(
+                    $this->respuesta_exitosa,
+                    200,
+                    $cliente
+                )
+            );
+        } catch (Exception $e) {
+            return $this->get_response(
+                $e->getMessage(),
+                503,
+                []
+            );
+        }
     }
 
     /**
@@ -89,6 +115,18 @@ class ClienteController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $cliente = Cliente::findOrFail($id);
+            $cliente->delete();
+            return response()->json(
+                $this->get_response(
+                    "Registro Eliminado" . $id,
+                    200,
+                    $cliente
+                )
+            );
+        } catch (Exception $e) {
+            return $this->get_response($e->getMessage(), 503, []);
+        }
     }
 }
