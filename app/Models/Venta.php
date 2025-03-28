@@ -13,7 +13,7 @@ class Venta extends Model
         'cliente_id',
         'fecha_venta',
         'total_venta',
-        'estadp'
+        'estado'
     ];
 
     public function cliente()

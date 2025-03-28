@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Productos;
 use App\Models\Venta;
+use App\Models\VentaDetalle;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class VentaController extends Controller
 {
@@ -28,9 +32,66 @@ class VentaController extends Controller
      */
     public function store(Request $request)
     {
-        //
-    }
+        try {
 
+            DB::beginTransaction();
+
+            //CODIGO DE CREACION DE VENTA
+            $data = $request->validate([
+                'cliente_id' => 'required|exists:clientes,id',
+                'fecha_venta' => 'required|date',
+                'productos' => 'required|array',
+                'productos.*.producto_id' => 'required|exists:productos,id',
+                'productos.*.cantidad' => 'required|integer|min:1',
+            ]);
+
+            $total = 0;
+
+            $venta = Venta::create([
+                'cliente_id' => $data['cliente_id'],
+                'fecha_venta' => $data['fecha_venta'],
+                'total_venta' => $total,
+                'estado' => 'pendiente',
+            ]);
+
+            foreach ($data['productos'] as $producto) {
+
+                $productoInfo = Productos::find($producto['producto_id']);
+                if ($productoInfo->stock < $producto['cantidad']) {
+                    return response()->json($this->get_response("No hay suficiente stock para el producto", 500, null), 500);
+                }
+
+                $subtotal = $productoInfo->precio * $producto['cantidad'];
+
+                $total += $subtotal;
+
+                VentaDetalle::create([
+                    'venta_id' => $venta->id,
+                    'producto_id' => $producto['producto_id'],
+                    'cantidad' => $producto['cantidad'],
+                    'precio' => $productoInfo->precio,
+                    'subtotal' => $subtotal,
+                ]);
+
+                $productoInfo->update([
+                    'stock' => $productoInfo->stock - $producto['cantidad']
+                ]);
+            }
+
+            $venta->update([
+                'total_venta' => $total,
+                'estado' => 'pagada'
+            ]);
+
+            DB::commit();
+
+            return response()->json($this->get_response("Venta realizada con exito", 200, $venta), 200);
+        } catch (Exception $e) {
+
+            DB::rollBack();
+            return response()->json($this->get_response($e->getMessage(), 500, null), 500);
+        }
+    }
     /**
      * Display the specified resource.
      */
