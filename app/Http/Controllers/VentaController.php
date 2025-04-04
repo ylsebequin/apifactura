@@ -16,7 +16,12 @@ class VentaController extends Controller
      */
     public function index()
     {
-        //
+        try {
+            $ventas = Venta::with('cliente', 'detalles.producto')->get();
+            return response()->json($this->get_response("Listado de Ventas", 200, $ventas), 200);
+        } catch (Exception $e) {
+            return response()->json($this->get_response($e->getMessage(), 500, null), 500);
+        }
     }
 
     /**
@@ -97,7 +102,12 @@ class VentaController extends Controller
      */
     public function show(Venta $venta)
     {
-        //
+        try {
+            $respuesta = $venta->with('detalles.producto')->first();
+            return response()->json($this->get_response("Se recupero la venta", 200, $respuesta), 200);
+        } catch (Exception $e) {
+            return response()->json($this->get_response($e->getMessage(), 500, null), 500);
+        }
     }
 
     /**
